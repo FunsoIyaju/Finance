@@ -2,6 +2,7 @@
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
+import plotly.express as px
 from datetime import datetime, timedelta
 import yfinance as yf
 import streamlit as st
@@ -253,19 +254,28 @@ with tab2:
         show_data = st.checkbox("Show Chart as Candle")
         if show_data:
             st.write('**Candlestick Chart**')
-            fig = go.Figure(data=[go.Candlestick(
-            x=stockprice['Date'],
-            open=stockprice['Open'],
-            high=stockprice['High'],
-            low=stockprice['Low'],
-            close=stockprice['Close'])])
+            #fig = px.pie(filtered_df, values="Sales", names="Category", template="gridon")
+            #fig = px.scatter(stockprice, template="candlestick")
+            #st.plotly_chart(fig, use_container_width=True)
+
+            fig = go.Figure()
+            fig.add_trace(go.Candlestick(x=stockprice['Date'], open=stockprice['Open'], high=stockprice['High'], low=stockprice['Low'], close=stockprice['Close']) )
             st.plotly_chart(fig, use_container_width=True)
+
+            #fig = go.Figure(data=[go.Candlestick(
+            #x=stockprice['Date'],
+            #open=stockprice['Open'],
+            #high=stockprice['High'],
+            #low=stockprice['Low'],
+            #close=stockprice['Close'])])
+            #st.plotly_chart(fig, use_container_width=True)
+
+            #fig = px.pie(filtered_df, values="Sales", names="Category", template="gridon")
+            #fig.update_traces(text=filtered_df["Category"], textposition="inside")
+            #st.plotly_chart(fig, use_container_width=True)
         else:
             st.write('**Stock Chart**')
-            fig = go.Figure()
-            fig.add_trace(go.Scatter(x=stockprice['Date'], y=stockprice['Close'], mode='lines', name='Stock Price'))
-            fig.update_layout(title='Stock Price Line Chart', xaxis_title='Date', yaxis_title='Close Price')
-            st.plotly_chart(fig, use_container_width=True)
+            st.line_chart(stockprice, x='Date', y='Close', use_container_width=True)
     st.write('**Stock Price**')
     st.dataframe(stockprice, hide_index=True, use_container_width=True)
 with tab3:
