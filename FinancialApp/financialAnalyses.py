@@ -254,25 +254,9 @@ with tab2:
         show_data = st.checkbox("Show Chart as Candle")
         if show_data:
             st.write('**Candlestick Chart**')
-            #fig = px.pie(filtered_df, values="Sales", names="Category", template="gridon")
-            #fig = px.scatter(stockprice, template="candlestick")
-            #st.plotly_chart(fig, use_container_width=True)
-
             fig = go.Figure()
             fig.add_trace(go.Candlestick(x=stockprice['Date'], open=stockprice['Open'], high=stockprice['High'], low=stockprice['Low'], close=stockprice['Close']) )
             st.plotly_chart(fig, use_container_width=True)
-
-            #fig = go.Figure(data=[go.Candlestick(
-            #x=stockprice['Date'],
-            #open=stockprice['Open'],
-            #high=stockprice['High'],
-            #low=stockprice['Low'],
-            #close=stockprice['Close'])])
-            #st.plotly_chart(fig, use_container_width=True)
-
-            #fig = px.pie(filtered_df, values="Sales", names="Category", template="gridon")
-            #fig.update_traces(text=filtered_df["Category"], textposition="inside")
-            #st.plotly_chart(fig, use_container_width=True)
         else:
             st.write('**Stock Chart**')
             st.line_chart(stockprice, x='Date', y='Close', use_container_width=True)
