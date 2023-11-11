@@ -176,6 +176,7 @@ def run_simulation(stock_price, time_horizon, n_simulation, seed):
         simulated_df_new = pd.concat([simulated_df_new, simulated_col], axis=1)
     return simulated_df_new
 
+# This is my streamlit application
 def financialInfo(ticker, period="Annual"):
     @st.cache_resource
     def getFinancialInfo(ticker):
