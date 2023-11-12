@@ -152,10 +152,8 @@ def getFinancials(ticker, period="Annual"):
 @st.cache_data
 def getOtherInfo(ticker, period="Annual"):
     others = yf.Ticker(ticker)
-    _news = others.news
     _dividends = others.dividends
-    #_earnings = others.analyst_price_target
-    otherInfo = [_news, _dividends]
+    otherInfo = [_dividends]
     return otherInfo
 
 def run_simulation(stock_price, time_horizon, n_simulation, seed):
@@ -337,4 +335,4 @@ with tab5:
         st.metric("Debt to Equity Ration", '{:.2f}'.format(infolst[0]['debtToEquity']))
     moreInfo = getOtherInfo(ticker)
     st.write('**Dividend Payout**')
-    st.dataframe(moreInfo[1], use_container_width=True)
+    st.dataframe(moreInfo[0], use_container_width=True)
