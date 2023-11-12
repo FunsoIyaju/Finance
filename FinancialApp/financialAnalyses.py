@@ -1,4 +1,5 @@
-# Libraries
+# Load all required Libraries
+
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
@@ -101,22 +102,13 @@ class YFinance:
 
         return ret
 
-
+# Design dashboard header
 def dashboard_header():
     st.set_page_config(page_title="Stock Analysis", page_icon=":bar_chart:", layout="wide")
     st.title(" :bar_chart: Stocks Financial Application")
     st.markdown('<style> div.block-container{padding-top:1rem;}</style>', unsafe_allow_html=True)
 
-
-
-@st.cache_data
-def getStockInfo(ticker, start_date, end_date):
-    stock_df = yf.Ticker(ticker).history(start=start_date, end=end_date)
-    stock_df.reset_index(inplace=True)  # Drop the indexes
-    stock_df['Date'] = stock_df['Date'].dt.date  # Convert date-time to date
-    return stock_df
-
-
+# Function to get historical stock price
 @st.cache_data
 def getHistoricalStockPrice(ticker, period="MAX", interval="1d"):
     stock_df = yf.Ticker(ticker).history(interval=interval, period=period)
@@ -125,6 +117,7 @@ def getHistoricalStockPrice(ticker, period="MAX", interval="1d"):
     return stock_df
 
 
+# Function to get company information
 @st.cache_data
 def getCompanyInfo(ticker):
     companySummary = YFinance(ticker).info
@@ -133,7 +126,7 @@ def getCompanyInfo(ticker):
     companyInfo = [companySummary, major_holders, shareHolders]
     return companyInfo
 
-
+# Function to get company financials
 @st.cache_data
 def getFinancials(ticker, period="Annual"):
     financial = yf.Ticker(ticker)
@@ -148,7 +141,7 @@ def getFinancials(ticker, period="Annual"):
     financialInfo = [balance_sheet, income_statement, cash_flow]
     return financialInfo
 
-
+#m Function to get other financial information
 @st.cache_data
 def getOtherInfo(ticker, period="Annual"):
     others = yf.Ticker(ticker)
@@ -156,6 +149,7 @@ def getOtherInfo(ticker, period="Annual"):
     otherInfo = [_dividends]
     return otherInfo
 
+# Function to run Monte Carlo Simulation
 def run_simulation(stock_price, time_horizon, n_simulation, seed):
     simulated_df_new = pd.DataFrame()
     volatility = stock_price['Close'].pct_change().std()
@@ -173,13 +167,13 @@ def run_simulation(stock_price, time_horizon, n_simulation, seed):
         simulated_df_new = pd.concat([simulated_df_new, simulated_col], axis=1)
     return simulated_df_new
 
-# Sets padding for figures
+# Sets padding for display of figures
 def set_padding(fig):
     fig.update_layout(margin=go.layout.Margin(
         r=10, #right margin
         b=10))
 
-# Adds the range selector to given figure
+# Function for selection of time range
 def add_range_selector(fig):
     fig.update_layout(
         xaxis=dict(
@@ -196,23 +190,36 @@ def add_range_selector(fig):
                 ]),
             type='date'),#end xaxis  definition
         xaxis2_type='date')
+
+# Function for computing Simple Moving Average
 def simple_moving_average(stock,windowSize=50):
     for ma_length in range(1, windowSize):  # Define the range the desired number of periods should be
         stock['SMA'] = stock['Close'].rolling(ma_length).mean()
     return stock
-    # Main body of the financial dashboard #
-# plotly package was reinstall
 
+
+
+########################################## Main body of the financial dashboard ###############################
+
+# Render the dashboard header
 dashboard_header()
 
-ticker_list = pd.read_html('https://en.wikipedia.org/wiki/List_of_S%26P_500_companies')[0]['Symbol']
-st.sidebar.header("Choose your filter :")
-ticker = st.sidebar.selectbox("Ticker", ticker_list)
-#start = st.sidebar.date_input("Start Date", datetime.today().date() - timedelta(days=30))
-#end = st.sidebar.date_input("End Date", datetime.today().date())
+# Declare global variabbles for storing stock data and information
+
 global stockprice
 global infolst
+
+# Get the list of tickers from Wikipedia
+ticker_list = pd.read_html('https://en.wikipedia.org/wiki/List_of_S%26P_500_companies')[0]['Symbol']
+
+# Add dashboard widget and filter to dashboard sidebar
+st.sidebar.header("Choose your filter :")
+ticker = st.sidebar.selectbox("Ticker", ticker_list)
+
+# Initial data retrieval
 stockprice = getHistoricalStockPrice(ticker, interval="1d")
+
+# Interactive data retrieval using time intervals
 intervals = ["1d", "5d", "1wk", "1mo", "3mo"]
 interval = st.sidebar.selectbox("Select Time Interval", intervals)
 button = st.sidebar.button("Update Stock Data")
@@ -220,7 +227,10 @@ if button:
     stockprice = getHistoricalStockPrice(ticker, interval="1d")
 
 
+# Layout tabs for dashboard presentation
 tab1, tab2, tab3, tab4, tab5 = st.tabs(["Summary", "Chart", "Financials", "Monte Carlo Simulation", "Analysis"])
+
+# Tab for the presentation of company profile, key statistics, distribution of shares and major institutional shareholders
 with tab1:
     if ticker != '':
         infolst = getCompanyInfo(ticker)
@@ -267,13 +277,15 @@ with tab1:
     infolst[2]['Date Reported'] = infolst[2]['Date Reported'].dt.strftime('%b %d, %Y')
     st.dataframe(infolst[2], hide_index=True,  use_container_width=True)
     st.markdown('[Find more information on Wikipedia](https://en.wikipedia.org/)', unsafe_allow_html=True)
+
+# Tab for the presentation stock price, volume, MA and Candlestick graph of stock information
 with tab2:
     if ticker != '':
         show_data = st.checkbox("Show as Candlestick")
         if show_data:
-            st.write('**Candlestick Chart**')
             fig = go.Figure()
             fig.add_candlestick(x=stockprice['Date'], open=stockprice['Open'], high=stockprice['High'], low=stockprice['Low'], close=stockprice['Close'])
+            fig.update_layout(autosize=False, width=800, height=600, title_text=ticker + " - Candlestick")
             st.plotly_chart(fig, use_container_width=True)
         else:
             stockprice = simple_moving_average(stockprice)
@@ -290,6 +302,9 @@ with tab2:
             fig.update_layout(autosize=False, width=800, height=700, title_text=ticker + " - Price and Volume",
                               xaxis=dict(rangeselector=dict(font=dict(color='black'))))
             st.plotly_chart(fig, use_container_width=True)
+
+# Tab for the presentation of  annual and quarterly financial statements
+# Balance Sheet, Income Statement, Cash Flow
 with tab3:
     periodList = ["Annual", "Quarterly"]
     selected_period = st.selectbox("Select Period", periodList)
@@ -302,6 +317,7 @@ with tab3:
     with fin03:
         st.dataframe(financialData[2], use_container_width=True)
 
+# Tab for the presentation of Monte Carlo Simulation
 with tab4:
     noSimulationList = [200, 500, 1000]
     timeHorizonList = [30, 60, 90]
@@ -320,6 +336,8 @@ with tab4:
     #st.write(f"At 99% confidence level, loss will not exceed {v99:,.2f}")
     st.write(f"At 95% confidence level, loss will not exceed {v95:,.2f}")
     #st.write(f"At 90% confidence level, loss will not exceed {v90:,.2f}")
+
+# Tab for the presentation of other key financial metrics and ratio
 with tab5:
     st.write('**More Financial Analysis**')
     st.write('**Financial Ratio**')
