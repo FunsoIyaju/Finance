@@ -332,7 +332,7 @@ with tab5:
         st.metric("Revenue Growth", infolst[0]['revenueGrowth'])
     with col3:
         st.metric("Gross Profits", "$" + '{:,}'.format(infolst[0]['grossProfits']))
-        st.metric("Debt to Equity Ration", '{:.2f}'.format(infolst[0]['debtToEquity']))
+        st.metric("Debt to Equity Ratio", '{:.2f}'.format(infolst[0]['debtToEquity']))
     moreInfo = getOtherInfo(ticker)
     st.write('**Dividend Payout**')
     st.dataframe(moreInfo[0], use_container_width=True)
