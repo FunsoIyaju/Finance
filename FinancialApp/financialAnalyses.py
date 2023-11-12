@@ -2,6 +2,8 @@
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
+import plotly.express as px
+from plotly.subplots import make_subplots
 from datetime import datetime, timedelta
 import yfinance as yf
 import streamlit as st
@@ -259,7 +261,11 @@ with tab2:
             st.plotly_chart(fig, use_container_width=True)
         else:
             st.write('**Stock Chart**')
-            st.line_chart(stockprice, x='Date', y='Close', use_container_width=True)
+            #st.line_chart(stockprice, x='Date', y='Close', use_container_width=True)
+
+            fig = px.line(stockprice, x=stockprice.index, y='Close', title=ticker + ' - Stock Market Analysis with Time Period Selectors', height=500)
+            fig.show()
+
     st.write('**Stock Price**')
     st.dataframe(stockprice, hide_index=True, use_container_width=True)
 with tab3:
