@@ -331,7 +331,7 @@ with tab5:
         st.metric("Operating Margin", '{:.2f}'.format(infolst[0]['operatingMargins']))
     with col2:
         st.metric("Return on Asset", '{:.2f}'.format(infolst[0]['returnOnAssets']))
-        st.metric("Earnings Growth", '{:.2f}'.format(infolst[0]['earningsGrowth']))
+        st.metric("Revenue Growth", infolst[0]['revenueGrowth'])
     with col3:
         st.metric("Gross Profits", "$" + '{:,}'.format(infolst[0]['grossProfits']))
         st.metric("Debt to Equity Ration", '{:.2f}'.format(infolst[0]['debtToEquity']))
