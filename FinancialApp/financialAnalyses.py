@@ -327,14 +327,14 @@ with tab5:
     st.write('**Financial Ratio**')
     col1, col2, col3 = st.columns(3)
     with col1:
-        st.metric("Profit Margin", infolst[0]['profitMargins'])
-        st.metric("Operating Margin", infolst[0]['operatingMargins'])
+        st.metric("Profit Margin", '{:.2f}'.format(infolst[0]['profitMargins']))
+        st.metric("Operating Margin", '{:.2f}'.format(infolst[0]['operatingMargins']))
     with col2:
-        st.metric("Return on Asset", infolst[0]['returnOnAssets'])
-        st.metric("Earnings Growth", infolst[0]['earningsGrowth'])
+        st.metric("Return on Asset", '{:.2f}'.format(infolst[0]['returnOnAssets']))
+        st.metric("Earnings Growth", '{:.2f}'.format(infolst[0]['earningsGrowth']))
     with col3:
-        st.metric("Gross Profits", infolst[0]['grossProfits'])
-        st.metric("Debt to Equity", infolst[0]['debtToEquity'])
+        st.metric("Gross Profits", "$" + '{:,}'.format(infolst[0]['grossProfits']))
+        st.metric("Debt to Equity Ration", '{:.2f}'.format(infolst[0]['debtToEquity']))
     moreInfo = getOtherInfo(ticker)
     st.write('**Dividend Payout**')
     st.dataframe(moreInfo[1], use_container_width=True)
