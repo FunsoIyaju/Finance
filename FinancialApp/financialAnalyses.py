@@ -2,11 +2,11 @@
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
-import plotly.express as px
 from plotly.subplots import make_subplots
-from datetime import datetime, timedelta
+#from datetime import datetime, timedelta
 import yfinance as yf
 import streamlit as st
+
 
 # ==============================================================================
 # HOT FIX FOR YFINANCE .INFO METHOD
@@ -121,7 +121,7 @@ def getStockInfo(ticker, start_date, end_date):
 
 
 @st.cache_data
-def getHistoricalStockPrice(ticker, period, interval="1d"):
+def getHistoricalStockPrice(ticker, period="MAX", interval="1d"):
     stock_df = yf.Ticker(ticker).history(interval=interval, period=period)
     stock_df.reset_index(inplace=True)  # Drop the indexes
     stock_df['Date'] = stock_df['Date'].dt.date  # Convert date-time to date
@@ -196,6 +196,37 @@ def financialInfo(ticker, period="Annual"):
     financial = [balance_sheet, income_statement, cash_flow]
     return financial
 
+# Sets padding for figures
+def set_padding(fig):
+    fig.update_layout(margin=go.layout.Margin(
+        r=10, #right margin
+        b=10))
+
+# Adds the range selector to given figure
+def add_range_selector(fig):
+    fig.update_layout(
+        xaxis=dict(
+            rangeselector=dict(
+                buttons=[
+                    dict(count=1, label='1M', step='month', stepmode='backward'),
+                    dict(count=3, label='3M', step='month', stepmode='backward'),
+                    dict(count=6, label='6M', step='month', stepmode='backward'),
+                    dict(count=1, label='YTD', step='year', stepmode='todate'),
+                    dict(count=1, label='1Y', step='year', stepmode='backward'),
+                    dict(count=3, label='3Y', step='year', stepmode='backward'),
+                    dict(count=5, label='5Y', step='year', stepmode='backward'),
+                    dict(step='all')
+                ]),
+            type='date'),#end xaxis  definition
+        xaxis2_type='date')
+
+# Adds the volume chart to row 2, column 1
+def add_volume_chart(fig):
+    # Colours for the Bar chart
+    colors = ['#9C1F0B' if row['Open'] - row['Close'] >= 0
+          else '#2B8308' for index, row in stockprice.iterrows()]
+    fig.add_trace(go.Bar(x='Date', y=stockprice['Volume'], showlegend=False, marker_color=colors), row=2, col=1)
+
 # Main body of the financial dashboard #
 # plotly package was reinstall
 
@@ -204,9 +235,17 @@ dashboard_header()
 ticker_list = pd.read_html('https://en.wikipedia.org/wiki/List_of_S%26P_500_companies')[0]['Symbol']
 st.sidebar.header("Choose your filter :")
 ticker = st.sidebar.selectbox("Ticker", ticker_list)
-start = st.sidebar.date_input("Start Date", datetime.today().date() - timedelta(days=30))
-end = st.sidebar.date_input("End Date", datetime.today().date())
+#start = st.sidebar.date_input("Start Date", datetime.today().date() - timedelta(days=30))
+#end = st.sidebar.date_input("End Date", datetime.today().date())
+global stockprice
+stockprice = getHistoricalStockPrice(ticker, interval="1d")
+intervals = ["1d", "5d", "1wk", "1mo", "3mo"]
+interval = st.sidebar.selectbox("Select Time Interval", intervals)
 button = st.sidebar.button("Update Stock Data")
+if button:
+    stockprice = getHistoricalStockPrice(ticker, interval)
+
+
 tab1, tab2, tab3, tab4, tab5 = st.tabs(["Summary", "Chart", "Financials", "Monte Carlo Simulation", "Analysis"])
 with tab1:
     if ticker != '':
@@ -235,40 +274,68 @@ with tab1:
             st.dataframe(company_stats, use_container_width=True)
         with col2:
             st.write('**Stock Chart**')
-            periods = ["1M", "3M", "6M", "YTD", "1Y", "3Y", "5Y", "MAX"]
-            period = st.selectbox("Time Duration", periods)
-            stockprice = getHistoricalStockPrice(ticker, period, interval="1d")
+            #periods = ["1M", "3M", "6M", "YTD", "1Y", "3Y", "5Y", "MAX"]
+            #period = st.selectbox("Time Duration", periods)
+            #stockprice = getHistoricalStockPrice(ticker, interval="1d")
             st.area_chart(stockprice, x="Date", y="Close", use_container_width=True)
 
     st.write('**Share Holders**')
     st.dataframe(infolst[1], hide_index=True,  use_container_width=True)
     st.markdown('[Find more information on Wikipedia](https://en.wikipedia.org/)', unsafe_allow_html=True)
 with tab2:
-    periods = ["1M", "3M", "6M", "YTD", "1Y", "3Y", "5Y", "MAX"]
-    intervals = ["1d", "5d", "1wk", "1mo", "3mo"]
-    col1, col2 = st.columns(2)
-    with col1:
-        period = st.selectbox("Select Time Duration", periods)
-    with col2:
-        interval = st.selectbox("Select Time Interval", intervals)
-    stockprice = getHistoricalStockPrice(ticker, period, interval)
+    #periods = ["1M", "3M", "6M", "YTD", "1Y", "3Y", "5Y", "MAX"]
+
+    #stockprice = getHistoricalStockPrice(ticker, interval="1d")
+    #col1, col2 = st.columns(2)
+    #with col1:
+        # period = st.selectbox("Select Time Duration", periods)
+    #with col2:
+    #interval = st.selectbox("Select Time Interval", intervals)
+    #stockprice = getHistoricalStockPrice(ticker, period="MAX", interval="1d")
     if ticker != '':
         show_data = st.checkbox("Show Chart as Candle")
         if show_data:
             st.write('**Candlestick Chart**')
             fig = go.Figure()
-            fig.add_trace(go.Candlestick(x=stockprice['Date'], open=stockprice['Open'], high=stockprice['High'], low=stockprice['Low'], close=stockprice['Close']) )
+            fig.add_candlestick(x=stockprice['Date'], open=stockprice['Open'], high=stockprice['High'], low=stockprice['Low'], close=stockprice['Close'])
+            #fig.add_trace(go.Candlestick(x=stockprice['Date'], open=stockprice['Open'], high=stockprice['High'], low=stockprice['Low'], close=stockprice['Close']) )
             st.plotly_chart(fig, use_container_width=True)
         else:
-            st.write('**Stock Chart**')
             #st.line_chart(stockprice, x='Date', y='Close', use_container_width=True)
 
-            fig = px.line(stockprice, x=stockprice.index, y='Close', title=ticker + ' - Stock Market Analysis with Time Period Selectors', height=500)
+            # Construct a 2 x 1 Plotly figure
+            fig = make_subplots(rows=2, cols=1, vertical_spacing=0.01, shared_xaxes=True)
+
+            # Plot the Price chart
+            fig.add_trace(go.Scatter(x=stockprice['Date'], y=stockprice['Close'], name='Price'), row=1, col=1)
+            #fig = px.line(stockprice, x='Date', y='Close',
+                          #title=ticker + ' - Stock Market Analysis with Time Period Selectors', height=500)
+
+            # Add the volume chart
+            #add_volume_chart(fig)
+
+            # Adds the range selector
+            add_range_selector(fig)
+
+            # Set the color from white to black on range selector buttons
+            fig.update_layout(xaxis=dict(rangeselector=dict(font=dict(color='black'))))
+
+            # Add labels to y axes
+            fig.update_yaxes(title_text="Price", row=1, col=1)
+            #fig.update_yaxes(title_text="Volume", row=2, col=1)
+
+            # Sets customized padding
+            set_padding(fig)
+
+            # Remove dates without values
+            #fig.update_xaxes(rangebreaks=[dict(values=dt_breaks)])
+
+            # Set the template and the title
+            layout = go.Layout(title=ticker + ' - Price', height=500, legend_title='Legend')
+            fig.update_layout(layout)
+            #fig = px.line(stockprice, x='Date', y='Close', title=ticker + ' - Stock Market Analysis with Time Period Selectors', height=500)
             st.plotly_chart(fig, use_container_width=True)
             #fig.show()
-
-    st.write('**Stock Price**')
-    st.dataframe(stockprice, hide_index=True, use_container_width=True)
 with tab3:
     periodList = ["Annual", "Quarterly"]
     selected_period = st.selectbox("Select Period", periodList)
@@ -290,8 +357,8 @@ with tab4:
     with col2:
         timeHorizon = st.selectbox("Select Time Horizon (Days)", timeHorizonList)
 
-    PriceDF = getStockInfo(ticker, start, end)
-    df = run_simulation(PriceDF, timeHorizon, noSimulation, 30)
+    #PriceDF = getStockInfo(ticker, start, end)
+    df = run_simulation(stockprice, timeHorizon, noSimulation, 30)
     st.write('**Monte Carlo Simulation for ' + ticker + ' Stock Price in the next ' + str(timeHorizon) + ' days**')
     st.line_chart(df, use_container_width=True)
     var_at_risk = df.values[-1:]
@@ -303,6 +370,5 @@ with tab4:
     #st.write(f"At 90% confidence level, loss will not exceed {v90:,.2f}")
 with tab5:
     moreInfo = getOtherInfo(ticker)
-    st.dataframe(moreInfo[0], use_container_width=True)
     st.write('**Dividend Payout Trend**')
     st.line_chart(moreInfo[1], use_container_width=True)
