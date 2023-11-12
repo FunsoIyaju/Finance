@@ -264,7 +264,8 @@ with tab2:
             #st.line_chart(stockprice, x='Date', y='Close', use_container_width=True)
 
             fig = px.line(stockprice, x=stockprice.index, y='Close', title=ticker + ' - Stock Market Analysis with Time Period Selectors', height=500)
-            fig.show()
+            st.plotly_chart(fig, use_container_width=True)
+            #fig.show()
 
     st.write('**Stock Price**')
     st.dataframe(stockprice, hide_index=True, use_container_width=True)
